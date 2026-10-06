@@ -16,7 +16,7 @@ Diseñar e implementar un conjunto de **flujos de automatización con n8n** que 
 
 ## 🛠️ Requisitos Técnicos
 
-1. **n8n** autoalojado (Docker) o n8n Cloud
+1. **n8n** autoalojado con **Docker** (`docker-compose`)
 2. Al menos un disparador por evento (**Webhook**, formulario, correo…) y uno programado (**Schedule Trigger**)
 3. Integración con servicios externos (Google Sheets, Gmail, Slack, Telegram, Notion, Airtable, etc.)
 4. Gestión segura de **credenciales** en n8n, **nunca escritas en los nodos ni subidas al repositorio**
@@ -34,7 +34,21 @@ El proyecto debe desarrollarse con un agente de IA en la terminal, trabajando co
 
 - Agente: **[OpenCode](https://opencode.ai)** (recomendado). Se pueden usar alternativas abiertas o gratuitas (Aider, Cline, Kilo Code…), pero hay que justificar la elección.
 - Modelos **gratuitos**, por ejemplo: los modelos gratuitos de OpenCode Zen, modelos `:free` de OpenRouter, la capa gratuita de Groq o Gemini, o modelos locales con **Ollama**. Los mismos modelos se pueden usar dentro de n8n en los nodos de IA.
+- **[n8n-mcp](https://github.com/czlonkowski/n8n-mcp)** (recomendado): servidor MCP que da al agente la documentación de todos los nodos de n8n y, conectado a la API de vuestra instancia, le permite crear, validar y actualizar flujos.
 - Si tienen IAs de pago pueden utilizarlas, solo que tenerlo en cuenta para no pisar el trabajo del equipo, delimitar muy bien el alcance que tendrán.
+
+**¿En qué ayuda el agente si n8n es visual?**
+
+Un flujo de n8n es un archivo JSON y n8n tiene una API REST, así que un agente puede trabajar con ellos igual que con código:
+
+- **Generar y modificar flujos:** a partir de una spec, el agente crea el JSON del flujo y lo sube a n8n (vía MCP o la API). El equipo lo abre en el editor, lo prueba y lo ajusta.
+- **Elegir y configurar nodos:** consulta qué nodo usar y qué parámetros necesita, en lugar de buscarlo a mano en la documentación.
+- **Escribir el código de los nodos Code** y las expresiones complejas (`{{ $json... }}`) de transformación de datos.
+- **Depurar:** se le pasa el error de una ejecución fallida y el JSON del flujo, y propone la corrección.
+- **Infraestructura y pruebas:** `docker-compose.yml`, `.env.example`, payloads de prueba para los webhooks y scripts para exportar e importar flujos.
+- **Documentar:** genera la documentación de cada flujo a partir de su JSON.
+
+El editor visual sigue siendo donde se prueba y se revisa: el agente no sustituye abrir el flujo y ejecutarlo.
 
 **Forma de trabajo**
 
@@ -50,7 +64,7 @@ El proyecto debe desarrollarse con un agente de IA en la terminal, trabajando co
 1. Mapa de procesos del cliente: situación actual y procesos automatizados (diagrama BPMN, Miro, Excalidraw o similar)
 2. Repositorio en GitHub con los flujos exportados en JSON y README con instrucciones para importarlos y configurarlos
 3. Documentación de cada flujo: objetivo, disparador, servicios que usa, credenciales necesarias y capturas
-4. `.env.example` y, si es autoalojado, `docker-compose.yml` para levantar n8n
+4. `docker-compose.yml` y `.env.example` para levantar n8n en local con un solo comando
 5. Datos de prueba y evidencias de ejecución (capturas o vídeo de las ejecuciones)
 6. Documento de retrospectiva del proyecto
 7. Tablero Kanban (Trello, Jira, GitHub Projects, etc.) con historias de usuario
@@ -62,6 +76,7 @@ El proyecto debe desarrollarse con un agente de IA en la terminal, trabajando co
 
 ### 🟢 Nivel Esencial
 
+- n8n levantado con `docker-compose` y datos persistentes en un volumen
 - Mínimo 3 flujos funcionales que resuelvan procesos reales del negocio
 - Al menos un flujo con disparador por evento (Webhook o formulario) y otro programado
 - Integración con al menos 2 servicios externos (por ejemplo: formulario → Google Sheets → notificación por Gmail o Slack)
@@ -89,12 +104,11 @@ El proyecto debe desarrollarse con un agente de IA en la terminal, trabajando co
 - Persistencia en base de datos (PostgreSQL, Supabase…) en lugar de solo hojas de cálculo
 - Webhooks protegidos (autenticación por cabecera o token) y validación de los datos de entrada
 - Gestión de datos personales conforme al RGPD (minimización, borrado, no enviar datos sensibles a modelos externos)
-- Uso de **MCP** para que el agente (OpenCode) consulte o cree flujos en n8n
 - Comandos, skills o subagentes personalizados en OpenCode para tareas repetitivas (generar specs, revisar flujos…)
 
 ### 🔴 Nivel Experto
 
-- n8n autoalojado con **Docker** y `docker-compose` (n8n + PostgreSQL), con volúmenes y copias de seguridad
+- n8n con PostgreSQL en `docker-compose` en lugar de SQLite, con copias de seguridad automáticas
 - Despliegue en la nube (Render, Railway, un VPS, Google Cloud, etc.) con HTTPS
 - Modo cola (**queue mode** con Redis y workers) para flujos con mucha carga
 - Pipeline de CI con GitHub Actions que valide los JSON de los flujos en cada PR
